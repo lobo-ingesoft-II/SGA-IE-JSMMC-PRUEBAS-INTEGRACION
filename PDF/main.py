@@ -9,8 +9,19 @@ import uvicorn
 from PDF.backend.session import engine, Base
 
 
-# Crear instancia de FastAPI
-app = FastAPI(title="PDF-test API")
+from contextlib import asynccontextmanager
+
+def create_tables():
+    Base.metadata.create_all(bind=engine)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Creando tablas en la base de datos (lifespan)...")
+    create_tables()
+    yield
+
+# Crear instancia de FastAPI con lifespan
+app = FastAPI(title="PDF-test API", lifespan=lifespan)
 
 
 # Habilitar CORS
@@ -23,19 +34,18 @@ app.add_middleware(
 )
 
 
-
 # Registrar rutas
 app.include_router(pdf_routes.router, prefix="/pdf", tags=["pdf"])
 
 
-def create_tables():
-    Base.metadata.create_all(bind=engine)
+# def create_tables():
+#     Base.metadata.create_all(bind=engine)
     
 
-@app.on_event("startup")
-def on_startup():
-    print("Creando tablas en la base de datos (evento startup)...")
-    create_tables()
+# @app.on_event("startup")
+# def on_startup():
+#     print("Creando tablas en la base de datos (evento startup)...")
+#     create_tables()
 
 
 # if __name__ == "__main__":
