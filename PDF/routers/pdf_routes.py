@@ -11,7 +11,7 @@ router = APIRouter()
 class LogCreate(BaseModel):
     title: str
 
-@router.post("/log", status_code=201)
+@router.post("/log")
 def create_log(logData: LogCreate, db: Session = Depends(get_db)):
     log = create_log_pdf(db, name=logData.title)
     if not log:
@@ -19,15 +19,15 @@ def create_log(logData: LogCreate, db: Session = Depends(get_db)):
     
     return {"id": log.id, "title": log.title}
 
-@router.get('/logs', methods=['GET'])
+@router.get('/logs')
 def get_logs(db: Session = Depends(get_db)):
     logs = get_all_logs(db)
-    return logs, 200
+    return logs
 
-@router.get('/logs/getId', methods=['GET'])
-def get_next_id(db: Session = Depends(get_db)):
+@router.get('/logs/nextId')
+def nextId(db: Session = Depends(get_db)):
     next_id = get_next_id(db)
     if next_id is None:
         raise HTTPException(status_code=404, detail="No logs found")
-    return ({'id': next_id}), 200
+    return {'id': next_id}
 
