@@ -16,7 +16,7 @@ def create_tables():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Creando tablas en la base de datos (lifespan)...")
+    print("Creando tablas en la base de data (lifespan)...")
     create_tables()
     yield
 
@@ -44,12 +44,12 @@ app.include_router(pdf_routes.router, prefix="/pdf", tags=["pdf"])
 
 # @app.on_event("startup")
 # def on_startup():
-#     print("Creando tablas en la base de datos (evento startup)...")
+#     print("Creando tablas en la base de data (evento startup)...")
 #     create_tables()
 
 
 # if __name__ == "__main__":
-#     print("Creando tablas en la base de datos...")
+#     print("Creando tablas en la base de data...")
 #     create_tables()
 #     uvicorn.run("main:app", host="0.0.0.0", port=5004, reload=True)
 
