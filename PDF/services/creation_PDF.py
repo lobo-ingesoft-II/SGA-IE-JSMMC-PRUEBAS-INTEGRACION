@@ -68,7 +68,7 @@ def createPDF(TestName:str, data):
     x = 50
     y = 730  # first coordinate for the y-axis 
 
-    c.drawString(x+200,y , TestName + "_" + str(id))
+    c.drawString(x ,y , TestName + "_" + str(id))
     y -= 30
     c.drawString(180, y, "Resultados de las pruebas de integración")
     
