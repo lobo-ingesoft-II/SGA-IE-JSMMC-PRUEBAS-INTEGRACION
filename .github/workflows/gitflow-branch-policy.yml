@@ -1,0 +1,45 @@
+name: Enforce GitFlow Branching Rules
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  validate-branch-flow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar flujo de ramas GitFlow
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          TARGET="${{ github.base_ref }}"
+
+          echo "🔍 Validando PR: $SOURCE → $TARGET"
+
+          # Validar nombres de ramas permitidos
+          if [[ ! "$SOURCE" =~ ^(main|develop|release/.+|hotfix/.+|feature/.+)$ ]]; then
+            echo "❌ Nombre de rama no permitido: $SOURCE"
+            exit 1
+          fi
+
+          # Reglas de flujo GitFlow
+          if [[ "$SOURCE" =~ ^feature/.*$ && "$TARGET" != "develop" ]]; then
+            echo "❌ Las ramas feature/* solo pueden hacer PR a develop"
+            exit 1
+          fi
+
+          if [[ "$SOURCE" == "develop" && ! "$TARGET" =~ ^release/.*$ ]]; then
+            echo "❌ develop solo puede hacer PR a release/*"
+            exit 1
+          fi
+
+          if [[ "$SOURCE" =~ ^release/.*$ && "$TARGET" != "main" ]]; then
+            echo "❌ release/* solo puede hacer PR a main"
+            exit 1
+          fi
+
+          if [[ "$SOURCE" =~ ^hotfix/.*$ && "$TARGET" != "main" && "$TARGET" != "develop" ]]; then
+            echo "❌ hotfix/* solo puede hacer PR a main o develop"
+            exit 1
+          fi
+
+          echo "✅ Validación exitosa: flujo de PR permitido."
