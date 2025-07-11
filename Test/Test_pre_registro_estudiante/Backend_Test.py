@@ -73,18 +73,12 @@ def delete_pre_registration(id):
 
 def create_pdf_pre_registration(id):
     url =  f"{settings.url_api_sga_pdf}/pdf_pre_registro/{id}"
-  
+    print("PDFFFFF:", url)
     response = requests.post(url, json={})
-    
     response.raise_for_status()
-    
-    data_response  = "tata"
-    status_code = response.status_code
-    if status_code == 200:
-        data_response = "SE CREO PDF CORRECTAMENTE"
-    else:
-        data_response = response.json()
+    data_response = response.json()
 
+    status_code = response.status_code
 
     return data_response , status_code
 
@@ -116,7 +110,7 @@ def integration_test():
             # Paso 2: Crear PDF asociado al pre-registro
 
             msg_pdf , status_code = create_pdf_pre_registration(id_Pre_registration)
-            
+            print("\n\n ", id_Pre_registration)
 
                 # Agregar arreglo para pdf 
             date_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -166,7 +160,7 @@ def integration_test():
                 array_data_pdf.append(arrayProvisional)
 
     # imprimir el pdf     
-    createPDF("PRUEBAS CORRECTAS FUNCIONALIDAD PRE-REGISTRO", array_data_pdf)
+    createPDF("Juan", array_data_pdf)
 
 if __name__ == "__main__":
     # integration_test()
