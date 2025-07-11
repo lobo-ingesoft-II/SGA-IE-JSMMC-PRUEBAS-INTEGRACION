@@ -1,0 +1,13 @@
+reportlab
+requests
+fastapi 
+redis-om
+uvicorn[standard]
+# "fastapi[standard]"
+requests 
+pymongo
+pydantic-settings 
+python-dotenv
+motor
+prometheus_client
+datetime
