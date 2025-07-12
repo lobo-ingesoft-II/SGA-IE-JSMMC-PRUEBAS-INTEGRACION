@@ -1,220 +1,313 @@
-# import time
-# from selenium import webdriver
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
+import requests
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import sys
+import os 
 
-# # import os
-# # import sys
-# # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-# import sys
-# import os
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-# from PDF.creation_PDF import generar_pdf
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from PDF.services.creation_PDF import createPDF, input_data
+from Test.config import settings
+from datetime import datetime
+
+def open_frontend(driver):
+    # Opens the frontend application in the browser
+    url_page = f"{settings.url_api_frontend}/iedjosuemanrique/autenticacion/prematricula"
+    driver.get(url_page)
+    time.sleep(2)  # Give the page time to load
 
 
-# def abrir_frontend(driver):
-#     # Opens the frontend application in the browser
-#     driver.get("http://localhost:5000")
-#     time.sleep(2)  # Give the page time to load
 
-# def crear_usuario(driver, wait):
-#     # Fills out the user creation form and submits it
-#     # Then retrieves and returns the newly created user ID
-#     username_input = driver.find_element(By.ID, "username")
-#     username_input.send_keys("Ana")
-#     time.sleep(1)
-#     driver.find_element(By.XPATH, "//button[contains(text(), 'Crear Usuario')]").click()
-#     time.sleep(2)
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+import time
 
-#     user_result = driver.find_element(By.ID, "user-result").text
-#     print("Resultado usuario:", user_result)
-#     assert "Usuario creado con ID" in user_result
-#     user_id = ''.join(filter(str.isdigit, user_result))  # Extract numeric ID from result
-#     return user_id , ("(good) Resultado usuario:", user_result)  # Return user ID and result text for verification
+def fill_form(driver, wait):
+    # Apellidos
+    last_name_input = wait.until(EC.presence_of_element_located((By.NAME, "apellidos")))
+    last_name_input.send_keys("Franco Ruiz")
 
-# def crear_tarea(driver, wait, user_id):
-#     # Fills out the task creation form with a task and user ID, then submits it
-#     # Waits until the confirmation text appears and asserts the result
-#     task_input = driver.find_element(By.ID, "task")
-#     task_input.send_keys("Terminar laboratorio")
-#     time.sleep(1)
+    # Nombres
+    names_input = wait.until(EC.presence_of_element_located((By.NAME, "nombres")))
+    names_input.send_keys("Jhoan Sebastian")
 
-#     userid_input = driver.find_element(By.ID, "userid")
-#     userid_input.send_keys(user_id)
-#     userid_input.send_keys('\t')  # Force focus out of the input to trigger validation
-#     time.sleep(1)
+    # Lista combox
+        # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r5:")))
+    select_box.click()
 
-#     crear_tarea_btn = wait.until(
-#         EC.element_to_be_clickable((By.XPATH, "//button[text()='Crear Tarea']"))
-#     )
-#     crear_tarea_btn.click()
-#     time.sleep(2)
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'Registro Civil de Nacimiento')]")
+    ))
+    option.click()
 
-#     wait.until(
-#         EC.text_to_be_present_in_element((By.ID, "task-result"), "Tarea creada con ID")
-#     )
-#     task_result = driver.find_element(By.ID, "task-result").text
-#     print("Texto en task_result:", task_result)
-#     assert "Tarea creada con ID" in task_result
+    # Numero Documento
+    numeroDocumento_input = wait.until(EC.presence_of_element_located((By.NAME, "numeroDocumento")))
+    numeroDocumento_input.send_keys("111852872")
 
-#     tarea_id = ''.join(filter(str.isdigit, task_result))  # Extract numeric ID from result
-#     return tarea_id, ("(good) Texto en task_result:", task_result)
+    # Poner Fecha
+    fecha_input = wait.until(EC.presence_of_element_located((By.NAME, "fechaNacimiento")))
+    fecha_input.send_keys("05-11-2010")
 
-# def ver_tareas(driver):
-#     # Clicks the button to refresh the task list and verifies the new task appears
-#     driver.find_element(By.XPATH, "//button[contains(text(), 'Actualizar lista de tareas')]").click()
-#     time.sleep(2)
+    # Poner Pais ComBox ya esta
+        # colombia
+    
+    # Poner Departamento
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":rf:")))
+    select_box.click()
 
-#     tasks = driver.find_element(By.ID, "tasks").text
-#     print("Tareas:", tasks)
-#     assert "Terminar laboratorio" in tasks
-#     return("Tareas:", tasks)
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'TOLIMA')]")
+    ))
+    option.click()
 
+    # Poner Municipio Nacimiento
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r2v:")))
+    select_box.click()
+
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'ARMERO')]")
+    ))
+    option.click()
+
+    # Categoria Sisben 
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":rj:")))
+    select_box.click()
+
+                # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'A')]")
+    ))
+    option.click()
+
+    # Sub Categoria Sisben 
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":rn:")))
+    select_box.click()
+
+                # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'A3')]")
+    ))
+    option.click()
+
+    # Direccion de Residencia
+    address_input = wait.until(EC.presence_of_element_located((By.NAME, "direccionResidencia")))
+    address_input.send_keys("cll 56a sur # 27 -75")
+
+    # Telefono
+    tel_input = wait.until(EC.presence_of_element_located((By.NAME, "telefono")))
+    tel_input.send_keys("cll 56a sur # 27 -75")
+
+    # Ruta Escolar 
+    ruta_input = wait.until(EC.presence_of_element_located((By.NAME, "rutaEscolar")))
+    ruta_input.send_keys("Ruta-pepito S.A")
+
+    # Seguro Eps
+    seguroMedico_input = wait.until(EC.presence_of_element_located((By.NAME, "seguroMedico")))
+    seguroMedico_input.send_keys("Compensar")
 
     
-# def borrar_tarea(driver, wait, task_id):
-#     # Fills out the task creation form with a task and user ID, then submits it
-#     # Waits until the confirmation text appears and asserts the result
-#     taskid_input = driver.find_element(By.ID, "taskid_delete")
-#     taskid_input.send_keys(task_id)
-#     taskid_input.send_keys('\t') # Force focus out of the input to trigger validation
-#     time.sleep(1)
+    # Discapacidad
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r13:")))
+    select_box.click()
 
-#     borrar_tarea_btn = wait.until(
-#         EC.element_to_be_clickable((By.XPATH, "//button[text()='Borrar Tarea']"))
-#     )
-#     borrar_tarea_btn.click()
-#     time.sleep(2)
+                # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'NO')]")
+    ))
+    option.click()
 
-#     wait.until(
-#         EC.text_to_be_present_in_element((By.ID, "task-delete-result"), "Tarea Borrada con ID")
-#     )
-#     task_result = driver.find_element(By.ID, "task-delete-result")
-#     print("Texto en task_delete_result:", task_result.text)
-#     assert "Tarea Borrada con ID" in task_result.text
-#     return("(good) Texto en task_delete_result:", task_result.text)
+    # Poblacion desplazada 
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r17:")))
+    select_box.click()
 
-# def borrar_usuario(driver, wait, user_id):
-#     # Fills out the task creation form with a task and user ID, then submits it
-#     # Waits until the confirmation text appears and asserts the result
-#     taskid_input = driver.find_element(By.ID, "userid_delete")
-#     taskid_input.send_keys(user_id)
-#     taskid_input.send_keys('\t') # Force focus out of the input to trigger validation
-#     time.sleep(1)
+                # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'NO')]")
+    ))
+    option.click()
+    
+    # Poner Pais RESIDENCIA ComBox ya esta
+        # colombia
+    
+    # Poner Departamento RESIDENCIA
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r1f:")))
+    select_box.click()
 
-#     borrar_usuario_btn = wait.until(
-#         EC.element_to_be_clickable((By.XPATH, "//button[text()='Borrar Usuario']"))
-#     )
-#     borrar_usuario_btn.click()
-#     time.sleep(2)
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'TOLIMA')]")
+    ))
+    option.click()
 
-#     wait.until(
-#         EC.text_to_be_present_in_element((By.ID, "user-delete-result"), "Usuario Borrado con ID")
-#     )
-#     user_result = driver.find_element(By.ID, "user-delete-result")
-#     print("Texto en user_delete_result:", user_result.text)
-#     assert "Usuario Borrado con ID" in user_result.text
-#     return("(good) Texto en user_delete_result:", user_result.text)
+    # Poner Municipio Nacimiento RESIDENCIA
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r33:")))
+    select_box.click()
 
-
-# def main():
-#     # Main test runner that initializes the browser and runs the full E2E flow
-#     options = Options()
-#     # options.add_argument('--headless')  # Uncomment for headless mode
-#     driver = webdriver.Chrome(options=options)
-
-#     try:
-#         array = [] 
-#         wait = WebDriverWait(driver, 10)
-#         abrir_frontend(driver)
-#         # Step 1: Create user
-#         user_id, text = crear_usuario(driver, wait)
-#         array.append(text)
-
-#         # Step 2: Create task
-#         tarea_id, text = crear_tarea(driver, wait, user_id)
-#         array.append(text)
-
-#         # Step 3: Verify task 
-#         text = ver_tareas(driver)
-#         array.append(text)
-
-#         # Step 4: Borar usuario y tarea 
-#         text = borrar_tarea(driver, wait, tarea_id)
-#         array.append(text)
-#         text = borrar_usuario(driver, wait, user_id)
-#         array.append(text)
-
-#         # Generar PDF con los resultados 
-#         generar_pdf("FrontEnd-Test", array)  # Generate PDF with results
-
-#         time.sleep(3)  # Final delay to observe results if not running headless
-
-#     finally:
-#         driver.quit()  # Always close the browser at the end
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'ARMERO')]")
+    ))
+    option.click()
 
 
-# def integration_test_witherror():
-#     options = Options()
-#     driver = webdriver.Chrome(options=options)
+    # -------------------------------------- INFORMACION ACADEMICA 
+    # Grado al que ingresa 
+        #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r1j:")))
+    select_box.click()
 
-#     array = []
-#     wait = WebDriverWait(driver, 10)
-#     user_id = None
-#     tarea_id = None
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'Sexto')]")
+    ))
+    option.click()
 
-#     try:
-#         try:
-#             abrir_frontend(driver)
-#         except Exception as e:
-#             array.append(("(bad) Error al abrir el frontend:", str(e)))
+    # Institucion de donde viene
+    ruta_input = wait.until(EC.presence_of_element_located((By.NAME, "institucionAnterior")))
+    ruta_input.send_keys("Colegio el cerrito I.E")
 
-#         try:
-#             user_id, text = crear_usuario(driver, wait)
-#             array.append(text)
-#         except Exception as e:
-#             array.append(("(bad) Error al crear usuario:", str(e)))
+    # Municipio
+    municipio_input = wait.until(EC.presence_of_element_located((By.NAME, "municipioAnterior")))
+    municipio_input.send_keys("Villavicencio")
 
-#         try:
-#             if user_id is not None:
-#                 tarea_id, text = crear_tarea(driver, wait, user_id)
-#                 array.append(text)
-#             else:
-#                 array.append(("(bad) No se pudo crear la tarea porque no hay usuario.", ""))
-#         except Exception as e:
-#             array.append(("(bad) Error al crear tarea:", str(e)))
+    # Sede
+            #Lista combox
+                # Paso 1: Hacer clic en el combobox para abrir la lista
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r1r:")))
+    select_box.click()
 
-#         try:
-#             text = ver_tareas(driver)
-#             array.append(text)
-#         except Exception as e:
-#             array.append(("(bad) Error al verificar tareas:", str(e)))
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'ESCUELA RURAL BOTELLAS')]")
+    ))
+    option.click()
 
-#         try:
-#             if tarea_id is not None:
-#                 text = borrar_tarea(driver, wait, tarea_id)
-#                 array.append(text)
-#             else:
-#                 array.append(("(bad) No se pudo borrar la tarea porque no existe.", ""))
-#         except Exception as e:
-#             array.append(("(bad) Error al borrar tarea:", str(e)))
+    #-------------------------------Acudiente 
+    # Parentesco
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r1v:")))
+    select_box.click()
 
-#         try:
-#             if user_id is not None:
-#                 text = borrar_usuario(driver, wait, -1)
-#                 array.append(text)
-#             else:
-#                 array.append(("(bad) No se pudo borrar el usuario porque no existe.", ""))
-#         except Exception as e:
-#             array.append(("(bad) Error al borrar tarea:", str(e)))
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'Padre')]")
+    ))
+    option.click()
 
-#     finally:
-#             generar_pdf("FrontEnd-Test", array)
-#             driver.quit()
-#             time.sleep(3)
+    # Apellidos 
+    apellido_input = wait.until(EC.presence_of_element_located((By.NAME, "acudiente1Apellidos")))
+    apellido_input.send_keys("Franco Herrera")
 
-# if __name__ == "__main__":
-#     main()
-#     integration_test_witherror()
+    # Nombres 
+    nombres_input = wait.until(EC.presence_of_element_located((By.NAME, "acudiente1Nombres")))
+    nombres_input.send_keys("Juan Esteban")
+
+    # Numero cedula 
+    numeroCedula_input = wait.until(EC.presence_of_element_located((By.NAME, "acudiente1CC")))
+    numeroCedula_input.send_keys("80072168")
+
+    # Numero celular 
+    numeroCedula_input = wait.until(EC.presence_of_element_located((By.NAME, "acudiente1Celular")))
+    numeroCedula_input.send_keys("3054741424")
+
+    # Ocupacion
+    ocupacion =  wait.until(EC.presence_of_element_located((By.NAME, "acudiente1Ocupacion")))
+    ocupacion.send_keys("Bombero")
+
+
+        #-------------------------------Acudiente 2 
+    # Parentesco
+    select_box = wait.until(EC.element_to_be_clickable((By.ID, ":r2d:")))
+    select_box.click()
+
+        # Paso 2: Esperar a que se despliegue la lista y seleccionar la opción
+    option = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, "//li[contains(text(), 'Madre')]")
+    ))
+    option.click()
+
+    # Apellidos 
+    apellido_input = wait.until(EC.presence_of_element_located((By.NAME, "acudiente2Apellidos")))
+    apellido_input.send_keys("Ruiz Carrillo")
+
+    # Nombres 
+    nombres_input = wait.until(EC.presence_of_element_located((By.NAME, "acudiente2Nombres")))
+    nombres_input.send_keys("Paola")
+
+    # Numero celular 
+    numeroCedula_input = wait.until(EC.presence_of_element_located((By.NAME, "acudiente2Celular")))
+    numeroCedula_input.send_keys("3054741424")
+
+
+    # Numero cedula 
+    numeroCedula_input = wait.until(EC.presence_of_element_located((By.NAME, "acudiente2CC")))
+    numeroCedula_input.send_keys("12156456")
+
+    # Ocupacion
+    ocupacion =  wait.until(EC.presence_of_element_located((By.NAME, "acudiente2Ocupacion")))
+    ocupacion.send_keys("Administradora")
+    #--------------------------------- llamar BOTON 
+    boton = driver.find_element(By.XPATH, "//button[contains(text(), 'Registrar Estudiante')]")
+    print("Voy a hacer clic...")
+    boton.click()
+
+    time.sleep(0.5)
+    try:
+        print("Esperando alerta JS...")
+        WebDriverWait(driver, 30).until(EC.alert_is_present())
+        alerta = driver.switch_to.alert
+        print("Texto de la alerta:", alerta.text)
+        time.sleep(0.5)
+        alerta.accept()
+        print("Alerta aceptada correctamente.")
+    except Exception as e:
+        print("No se pudo capturar la alerta:", e)
+
+
+
+
+
+def main():
+    # Main test runner that initializes the browser and runs the full E2E flow
+    options = Options()
+    # options.add_argument('--headless')  # Uncomment for headless mode
+    driver = webdriver.Chrome(options=options)
+
+    try:
+        wait = WebDriverWait(driver, 10)
+        open_frontend(driver)
+        # Step 1: Create user
+        fill_form(driver, wait)
+
+        time.sleep(15)  # Final delay to observe results if not running headless
+
+    finally:
+        driver.quit()  # Always close the browser at the end
+
+
+if __name__ == "__main__":
+    main()
