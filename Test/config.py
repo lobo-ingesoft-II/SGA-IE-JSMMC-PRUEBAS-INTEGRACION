@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     url_api_sga_pre_registro : str = Field(..., alias="SERVIDOR_API_PRE_REGISTRO_URL")
     url_api_sga_pdf : str = Field(..., alias="SERVIDOR_API_PDF_URL")
     url_api_frontend: str = Field(..., alias="SERVIDOR_FRONTEND_URL")
+    url_api_sga_portal_admin: str = Field(..., alias="SERVIDOR_API_PORTAL_ADMIN_URL")
     
     class Config:
         env_file = ".env"
