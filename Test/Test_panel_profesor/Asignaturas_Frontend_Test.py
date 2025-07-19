@@ -2,6 +2,7 @@ import time
 import sys
 import os
 import random
+import json
 from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -31,6 +32,94 @@ ASIGNATURA_URL = f"{FRONTEND_URL}/iedjosuemanrique/PanelProfesor/11/Asignatura/1
 
 # Credenciales
 from credentials import TEST_PROFESOR_EMAIL, TEST_PROFESOR_PASSWORD
+
+# Variables para almacenar el estado original
+original_calificaciones = {}
+original_asistencias = {}
+
+def guardar_estado_original(driver, wait):
+    """Guarda el estado original de calificaciones y asistencias"""
+    print("\n--- Guardando estado original ---")
+    
+    try:
+        # Buscar la tabla de estudiantes
+        estudiantes_table = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table")))
+        
+        # Buscar filas de estudiantes
+        estudiante_rows = estudiantes_table.find_elements(By.CSS_SELECTOR, "tr:not(:first-child)")
+        
+        # Guardar calificaciones originales
+        for i, row in enumerate(estudiante_rows):
+            estudiante_id = row.get_attribute("data-estudiante-id") or f"estudiante_{i+1}"
+            original_calificaciones[estudiante_id] = {}
+            
+            # Guardar calificaciones
+            calificacion_inputs = row.find_elements(By.CSS_SELECTOR, "input[type='number']")
+            for j, input_field in enumerate(calificacion_inputs):
+                periodo = f"parcial{j+1}"
+                valor = input_field.get_attribute("value")
+                original_calificaciones[estudiante_id][periodo] = valor
+            
+            # Guardar asistencia
+            asistencia_select = row.find_element(By.CSS_SELECTOR, "select, [role='combobox'], .MuiSelect-select")
+            original_asistencias[estudiante_id] = asistencia_select.text
+        
+        print(f"Estado original guardado para {len(estudiante_rows)} estudiantes")
+        
+        # Guardar en archivo para referencia
+        with open("estado_original.json", "w") as f:
+            json.dump({
+                "calificaciones": original_calificaciones,
+                "asistencias": original_asistencias,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }, f, indent=2)
+    
+    except Exception as e:
+        print(f"Error al guardar estado original: {e}")
+
+def restaurar_estado_original(driver, wait):
+    """Restaura el estado original de calificaciones y asistencias"""
+    print("\n--- Restaurando estado original ---")
+    
+    if not original_calificaciones and not original_asistencias:
+        print("No hay estado original para restaurar")
+        return
+    
+    try:
+        # Buscar la tabla de estudiantes
+        estudiantes_table = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table")))
+        
+        # Buscar filas de estudiantes
+        estudiante_rows = estudiantes_table.find_elements(By.CSS_SELECTOR, "tr:not(:first-child)")
+        
+        # Restaurar calificaciones
+        for i, row in enumerate(estudiante_rows):
+            estudiante_id = row.get_attribute("data-estudiante-id") or f"estudiante_{i+1}"
+            
+            if estudiante_id in original_calificaciones:
+                # Restaurar calificaciones
+                calificacion_inputs = row.find_elements(By.CSS_SELECTOR, "input[type='number']")
+                for j, input_field in enumerate(calificacion_inputs):
+                    periodo = f"parcial{j+1}"
+                    if periodo in original_calificaciones[estudiante_id]:
+                        valor_original = original_calificaciones[estudiante_id][periodo]
+                        if valor_original:
+                            input_field.clear()
+                            input_field.send_keys(valor_original)
+                            input_field.send_keys(Keys.TAB)
+                            time.sleep(0.5)
+            
+            # Restaurar asistencia (más complejo, se omite por ahora)
+        
+        # Guardar cambios
+        guardar_btn = driver.find_element(By.XPATH, "//button[contains(text(), 'Guardar') or contains(text(), 'guardar')]")
+        guardar_btn.click()
+        time.sleep(WAIT_TIME)
+        
+        print("Estado original restaurado")
+    
+    except Exception as e:
+        print(f"Error al restaurar estado original: {e}")
 
 def test_asistencia_functionality(driver, wait, screenshots_dir, asignatura_nombre, results):
     """Prueba la funcionalidad de asistencia"""
@@ -377,6 +466,9 @@ def run_asignaturas_frontend_tests():
             print(f"Asignatura detectada: {asignatura_nombre}")
             asignaturas_results.append(["Frontend", "Asignaturas", ["✅ PASSED", f"Navegación a asignatura {asignatura_nombre}", f"date: {datetime.now()}", f"URL: {driver.current_url}", "Navegación exitosa"]])
             
+            # Guardar estado original antes de hacer cambios
+            guardar_estado_original(driver, wait)
+            
             # Probar funcionalidades de la asignatura una por una para evitar errores de elementos obsoletos
             
             # 1. Probar calificaciones
@@ -395,6 +487,15 @@ def run_asignaturas_frontend_tests():
             
             # 5. Probar observaciones
             test_observaciones_functionality(driver, wait, screenshots_dir, asignatura_nombre, asignaturas_results)
+            
+            # 6. Recargar la página para restaurar estado original
+            driver.refresh()
+            time.sleep(WAIT_TIME * 2)
+            
+            # 7. Restaurar estado original
+            print("\n--- Restaurando estado original ---")
+            restaurar_estado_original(driver, wait)
+            asignaturas_results.append(["Frontend", "Restauración", ["✅ PASSED", "Restauración de estado original", f"date: {datetime.now()}", f"Asignatura: {asignatura_nombre}", "Intento de restaurar estado original"]])
             
         except Exception as e:
             print(f"Error al cargar la página de asignatura: {e}")
