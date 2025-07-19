@@ -11,3 +11,6 @@ python-dotenv
 motor
 prometheus_client
 datetime
+selenium
+jsonschema
+parameterized
