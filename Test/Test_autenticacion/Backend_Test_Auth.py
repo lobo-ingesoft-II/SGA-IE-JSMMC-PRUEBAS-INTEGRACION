@@ -61,7 +61,7 @@ def integration_test_auth():
     array_data_pdf.append(["Backend", "Correo no registrado", test_login("noexiste@correo.com", "clave123", esperado=False)])
 
     # Crear reporte PDF
-    createPDF("Login_Auth_Test", array_data_pdf)
+    createPDF("Login_Auth_Test_Backend", array_data_pdf)
 
 if __name__ == "__main__":
     integration_test_auth()
