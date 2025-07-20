@@ -109,7 +109,7 @@ def integration_test_portal_admin():
         resultados.append(["Backend", f"Eliminar usuario {uid}", generar_resultado(f"Eliminar usuario {uid}", r_del)])
 
     # Crear PDF
-    createPDF("Pruebas_Integracion_Portal_Admin", resultados)
+    createPDF("CRUD_Usuarios_Backend", resultados)
 
 if __name__ == "__main__":
     integration_test_portal_admin()

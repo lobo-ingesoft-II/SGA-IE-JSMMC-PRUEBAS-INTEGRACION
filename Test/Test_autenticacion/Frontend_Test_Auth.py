@@ -48,7 +48,7 @@ def test_login_frontend(driver, wait, email, password, expected_rol=None):
 
     # Clic en botón
     driver.find_element(By.XPATH, "//button[contains(., 'Log in')]").click()
-    time.sleep(3)
+    time.sleep(2)
 
     if expected_rol == "error":
         try:
@@ -81,7 +81,7 @@ def integration_test_frontend():
         finally:
             driver.quit()
 
-    createPDF("Login_Frontend", resultados_pdf)
+    createPDF("Login_Auth_Test_Frontend", resultados_pdf)
     print("✅ Pruebas completadas. Revisa el PDF generado en la carpeta PDF_TEST.")
 
 if __name__ == "__main__":
